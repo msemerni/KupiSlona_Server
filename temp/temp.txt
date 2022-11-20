@@ -1,0 +1,145 @@
+mutation reg {
+  register(login: "masha", password: "123123") {
+    login nick
+  }
+}
+
+# query Login {
+#   login(login: "vasya", password: "123123")
+# }
+
+query Login($login: String!, $password: String!) {
+      login(login: $login, password: $password)
+}
+
+
+query thisUser {
+  getUser(id:1) {
+    id login nick phones address  userAds{
+      id title
+    }
+  }
+}
+
+query allAds {
+  getAds{
+    id title price description createdAt tags address
+    user {id login nick} 
+    images{
+      id 
+    }
+  }
+}
+
+# mutation upsertAd {
+#   upsertAd(ad: {
+#     id: 9,
+#     title: "Телефон 400",  
+#     tags: "Electronics",
+#     description: "Продам телефон50", 
+#     price: 400, 
+#     address: "Харьков250"
+#     imageIds: []}
+#   ) 
+#   {
+#     user {login} id title
+#   }
+# }
+
+mutation upsertAd($ad: AdInput) {
+  upsertAd(ad:$ad) 
+  {
+    user {login} id title
+  }
+}
+
+mutation deleteAd {
+  deleteAd(id: 8) {
+    id title
+  }
+}
+
+
+//
+{
+  "login": "vasya",
+  "password": "123123",
+  "ad": {
+    "id": 10,
+    "title": "Телефон 1400",
+    "tags": "Electronics",
+    "description": "Продам телефон50",
+    "price": 400,
+    "address": "Харьков250",
+    "imageIds": []
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+mutation reg {
+  register(login: "masha", password: "123123") {
+    login nick
+  }
+}
+
+query login {
+  login(login: "vasya", password: "123123")
+}
+
+
+query thisUser {
+  getUser(id:1) {
+    id login nick phones address  userAds{
+      id title
+    }
+  }
+}
+
+query allAds {
+  getAds{
+    id title price description createdAt tags address
+    user {id login nick} 
+    images{
+      id 
+    }
+  }
+}
+
+# mutation newAd {
+#   addAd(ad: {
+#     title: "Компутхер55",  
+#     tags: "Electronics",
+#     description: "Продам комп", 
+#     price: 100500, 
+#     address: "Харьков"
+#     imageIds: []}) 
+  
+#   {
+#     id user {
+#       nick, login
+#     }
+#   }
+# }
+
+
+mutation newAd {
+  editAd(ad: {
+    id: "1",
+    title: "Телефон 550",  
+    tags: "Electronics",
+    description: "Продам телефон", 
+    price: 500, 
+    address: "Харьков2"
+    imageIds: []}) 
+  {
+    user {
+      nick
+    }
+  }
+}
