@@ -131,14 +131,14 @@ const schema = buildSchema(`
 type Query{
   login(login: String, password:String): String
   getAds: [Ad]
-  getUser(id: ID!): User
-  
+  AdFindOne (id: ID): Ad
+  getUser(id: ID): User
 }
 
 type Mutation{
   upsertAd(ad: AdInput): Ad
   deleteAd(id: ID!): Ad
-  register(login: String!, password: String!): User
+  createUser(login: String!, password: String!): User
   
 }
 
@@ -216,7 +216,7 @@ const rootValue = {
     throw new Error("Wrong password");
   },
 
-  async register({ login, password }, { thisUser }) {
+  async createUser({ login, password }, { thisUser }) {
     if (!login || !password) {
       throw new Error("Wrong creditnails");
     }
@@ -244,16 +244,27 @@ const rootValue = {
     throw new Error("Unauthorized user");
   },
 
+  async AdFindOne({ id }, { thisUser, models: { User, Ad } }) {
+    if (thisUser) {
+      console.log("АйДи", id);
+
+      let ad = await Ad.findByPk(id);
+      console.log(ad);
+      return ad;
+
+    }
+    throw new Error("Unauthorized user");
+  },
+
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
 
       let ad = await Ad.findByPk(id);
-      let user = await User.findByPk(thisUser.id);
+      // let user = await User.findByPk(thisUser.id);
+      // await user.removeAd(ad);
 
-      await user.removeAd(ad);
-
-      // await Ad.destroy(
-      //   {where: {id}})
+      await Ad.destroy(
+        {where: {id}})
 
       return ad;
     }
