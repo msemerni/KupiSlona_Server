@@ -134,6 +134,7 @@ type Query{
   getAds: [Ad]
   AdFindOne (id: ID): Ad
   getUser(id: ID): User
+  userAdFind(id: ID): [Ad]
 }
 
 type Mutation{
@@ -253,6 +254,15 @@ const rootValue = {
       console.log(ad);
       return ad;
 
+    }
+    throw new Error("Unauthorized user");
+  },
+
+  async userAdFind({ id }, { thisUser, models: { User, Ad } }) {
+    if (thisUser) {
+      console.log(id);
+      let ads = await Ad.findAll({ where: { UserId: id } });
+      return ads;
     }
     throw new Error("Unauthorized user");
   },
