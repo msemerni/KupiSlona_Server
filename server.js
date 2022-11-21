@@ -76,6 +76,7 @@ const getModels = userId => {
 
   class User extends Sequelize.Model {
     get userAds() {
+      ////// ИЗМЕНИТЬ НА ТОЛЬКО СВОИ
       return this.getAds()
     }
   }
@@ -137,7 +138,7 @@ type Query{
 
 type Mutation{
   upsertAd(ad: AdInput): Ad
-  deleteAd(id: ID!): Ad
+  deleteAd(id: ID): Ad
   createUser(login: String!, password: String!): User
   
 }
@@ -258,15 +259,19 @@ const rootValue = {
 
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
+      try {
+        let ad = await Ad.findByPk(id);
+        // let user = await User.findByPk(thisUser.id);
+        // await user.removeAd(ad);
+        await Ad.destroy(
+          { where: { id } })
 
-      let ad = await Ad.findByPk(id);
-      // let user = await User.findByPk(thisUser.id);
-      // await user.removeAd(ad);
+        return ad;
 
-      await Ad.destroy(
-        {where: {id}})
+      } catch (error) {
+        throw new Error("Something went wrong");
+      }
 
-      return ad;
     }
     throw new Error("Unauthorized user");
   },
