@@ -1,5 +1,5 @@
 mutation reg {
-  register(login: "masha", password: "123123") {
+  createUser(login: "masha", password: "123123") {
     login nick
   }
 }
@@ -83,7 +83,7 @@ mutation deleteAd {
 
 
 mutation reg {
-  register(login: "masha", password: "123123") {
+  createUser(login: "masha", password: "123123") {
     login nick
   }
 }
@@ -141,5 +141,31 @@ mutation newAd {
     user {
       nick
     }
+  }
+}
+
+
+////////////////////////////////
+{
+  "login": "masha",
+  "password": "123123",
+  "id": 25,
+  "ID": 4,
+  "queryID": 1,
+  "ad": {
+    "id": 139,
+    "title": "Комп васи 1",
+    "tags": "Electronics",
+    "description": "Продам телефон50",
+    "price": 400,
+    "address": "Харьков250",
+    "imageIds": []
+  },
+  "myProfile": {
+    "id": 4,
+    "login": "masha2",
+    "nick": "Masha2",
+    "phones": "066-12345678",
+    "address": "Kharkiv"
   }
 }

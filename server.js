@@ -141,6 +141,7 @@ type Mutation{
   upsertAd(ad: AdInput): Ad
   deleteAd(id: ID): Ad
   createUser(login: String!, password: String!): User
+  userUpdate(myProfile: UserInput): User
   
 }
 
@@ -185,6 +186,15 @@ type User {
   userAds: [Ad]
 }
 
+input UserInput {
+  id: ID
+
+  login: String
+  nick: String
+  phones: String
+  address: String
+}
+
 type Image {
   id: ID
   createdAt: String
@@ -218,6 +228,8 @@ const rootValue = {
     throw new Error("Wrong password");
   },
 
+
+
   async createUser({ login, password }, { thisUser }) {
     if (!login || !password) {
       throw new Error("Wrong creditnails");
@@ -229,6 +241,45 @@ const rootValue = {
       return await GlobalUser.create({ login, password: await hash(password, 10) });
     }
     throw new Error("User already exist");
+  },
+
+  // async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
+  //   if (thisUser) {
+  //     // console.log(thisUser);
+  //     if (await thisUser.hasImages(ad.imageIds)) {
+  //       let dbAd;
+
+  //       if (ad.id) {
+  //         dbAd = await Ad.findByPk(ad.id);
+  //         // console.log("'DBAD': ", dbAd);
+  //         // console.log("'ad': ", ad);
+  //         dbAd.title = ad.title;
+
+  async userUpdate({ myProfile }, { thisUser, models: { User } }) {
+
+    // console.log("THIS_USER: ", thisUser);
+    // console.log("THIS_USER_ID: ", thisUser.id);
+            ///// thisUser === currentProfile ????????
+    if (thisUser) {
+      let currentProfile = await User.findByPk(thisUser.id);
+      // console.log("CURRENT_PROFILE: ", currentProfile);
+      // console.log("NEW_PROFILE: ", newProfile);
+      // let yyy = await thisUser.hasImages(newProfile.imageIds);
+      // console.log("YYYYYYYYYYYYYYYYY: ", yyy);
+      // if (await thisUser.hasImages(newProfile.imageIds)) {
+          currentProfile.id = currentProfile.id;
+          currentProfile.login = myProfile.login;
+          currentProfile.nick = myProfile.nick;
+          currentProfile.phones = myProfile.phones;
+          currentProfile.address = myProfile.address;
+          // currentProfile = myProfile; ???
+          await currentProfile.save();
+          // await currentProfile.setImages(myProfile.imageIds);
+          return currentProfile;
+      // }
+      // throw new Error("Not user's image");
+    }
+    throw new Error("Unauthorized user");
   },
 
   async getUser({ id }, { thisUser, models: { User } }) {
@@ -288,7 +339,7 @@ const rootValue = {
 
   async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      console.log(thisUser);
+      // console.log(thisUser);
       if (await thisUser.hasImages(ad.imageIds)) {
         let dbAd;
 
