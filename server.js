@@ -7,6 +7,7 @@ const { sign, verify } = require('jsonwebtoken');
 const { hash, compare } = require('bcrypt');
 const upload = multer({ dest: './public/upload/' });
 const Sequelize = require('sequelize');
+const { Op } = require("sequelize");
 
 const APP_NAME = 'KupiSlona';
 const JWT_SALT = 'JwT_SaLt82&';
@@ -75,10 +76,9 @@ const getModels = userId => {
   // // sequelize.sync();
 
   class User extends Sequelize.Model {
-    get userAds() {
-      ////// ИЗМЕНИТЬ НА ТОЛЬКО СВОИ
-      return this.getAds()
-    }
+    // get userAds() {
+    //   return this.getAds()
+    // }
   }
 
   User.init({
@@ -87,6 +87,7 @@ const getModels = userId => {
     nick: Sequelize.STRING,
     phones: Sequelize.STRING,
     address: Sequelize.STRING,
+    avatar: Sequelize.STRING,
   }, { sequelize, modelName: 'user' })
 
   User.hasMany(Ad)
@@ -99,7 +100,8 @@ const getModels = userId => {
     originalname: Sequelize.STRING,
     mimetype: Sequelize.STRING,
     filename: Sequelize.STRING,
-    size: Sequelize.INTEGER
+    size: Sequelize.INTEGER,
+    url: Sequelize.STRING
   }, { sequelize, modelName: 'image' })
 
   Image.belongsTo(User, { as: 'avatar' })
@@ -125,16 +127,18 @@ GlobalUser.init({
   nick: Sequelize.STRING,
   phones: Sequelize.STRING,
   address: Sequelize.STRING,
+  avatar: Sequelize.STRING,
 }, {sequelize, modelName: 'user'})
 
 
 const schema = buildSchema(`
 type Query{
   login(login: String, password:String): String
-  getAds: [Ad]
+  getAds(settings: String): [Ad]
   AdFindOne (id: ID): Ad
   getUser(id: ID): User
   userAdFind(id: ID): [Ad]
+  AdSearch(queryString: String): [Ad]
 }
 
 type Mutation{
@@ -183,7 +187,7 @@ type User {
   phones: String
   address: String
 
-  userAds: [Ad]
+  avatar: [Image]
 }
 
 input UserInput {
@@ -193,6 +197,8 @@ input UserInput {
   nick: String
   phones: String
   address: String
+
+  avatar: [ImageInput]
 }
 
 type Image {
@@ -203,7 +209,20 @@ type Image {
   originalname: String,
   mimetype: String,
   filename: String,
-  size: Int
+  size: Int,
+
+  path: String
+  userAvatar: User,
+
+}
+
+input ImageInput {
+  id: ID,
+  createdAt: String
+  text: String,
+
+  path: String
+  userAvatar: UserInput
 }
 `)
 
@@ -227,8 +246,6 @@ const rootValue = {
 
     throw new Error("Wrong password");
   },
-
-
 
   async createUser({ login, password }, { thisUser }) {
     if (!login || !password) {
@@ -289,17 +306,17 @@ const rootValue = {
     throw new Error("Unauthorized user");
   },
 
-  async getAds(skip, { thisUser, models: { Ad } }) {
+  async getAds({settings}, { thisUser, models: { Ad } }) {
     if (thisUser) {
-      return await Ad.findAll({});
-      // return await Ad.scope('deleted').findAll();
+      const {order, offset, limit } = JSON.parse(settings)
+      return await Ad.findAll({ order, offset, limit});
     }
     throw new Error("Unauthorized user");
   },
 
   async AdFindOne({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      console.log("АйДи", id);
+      // console.log("АйДи", id);
 
       let ad = await Ad.findByPk(id);
       console.log(ad);
@@ -312,12 +329,29 @@ const rootValue = {
   async userAdFind({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
       console.log(id);
-      let ads = await Ad.findAll({ where: { UserId: id } });
+      let ads = await Ad.findAll({ order:[["id","DESC"]], where: { UserId: id } });
       return ads;
     }
     throw new Error("Unauthorized user");
   },
 
+  async AdSearch({ queryString }, { thisUser, models: { User, Ad } }) {
+    if (thisUser) {
+      console.log(queryString);
+      let ads = await Ad.findAll({ where: {
+        [Op.or]: [
+          {title: { [Op.like]: `%${queryString}%` }},
+          {description: { [Op.like]: `%${queryString}%` }},
+        ]
+      }});
+
+      console.log(ads);
+      return ads;
+    }
+    throw new Error("Unauthorized user");
+  },
+
+  
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
       try {
@@ -339,14 +373,15 @@ const rootValue = {
 
   async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      // console.log(thisUser);
-      if (await thisUser.hasImages(ad.imageIds)) {
+      console.log("'АД:::': ", ad);
+
+      // if (await thisUser.hasImages(ad.imageIds)) {
         let dbAd;
 
         if (ad.id) {
           dbAd = await Ad.findByPk(ad.id);
-          // console.log("'DBAD': ", dbAd);
-          // console.log("'ad': ", ad);
+          console.log("'DBAD': ", dbAd);
+          console.log("'ad': ", ad);
           dbAd.title = ad.title;
           dbAd.tags = ad.tags;
           dbAd.price = ad.price;
@@ -364,8 +399,8 @@ const rootValue = {
         }
 
         // return dbAd;
-      }
-      throw new Error("Not user's image");
+      // }
+      // throw new Error("Not user's image");
     }
     throw new Error("Unauthorized user");
   },
@@ -403,13 +438,20 @@ app.use('/graphql', graphqlHTTP(async (req, res) => {
 }))
 
 
-app.post('/upload', upload.single('file'), async (req, res) => {
+app.post('/upload', upload.single('dropZone'), async (req, res) => {
+// app.post('/upload', upload.array('file'), async (req, res) => {    ???????????????
+
+  console.log("REQ_FILE: ", req.file);
+
     const decodedUser = jwtCheck(req)
     const models = getModels(decodedUser.id);
 
     if (decodedUser) {
-      const {originalname, mimetype, filename, size} = req.file
-      const image = await models.Image.create({originalname, mimetype, filename, size, userId: decodedUser.id})
+      const {originalname, mimetype, filename, size, path} = req.file
+      console.log("P_A_T_H: ", path);
+      url = path.slice(7);
+      const image = await models.Image.create({originalname, mimetype, filename, size, url, userId: decodedUser.id})
+      console.log("I_M_A_G_E: ", image);
 
       res.status(201).end(JSON.stringify(image))
     }
@@ -520,3 +562,4 @@ app.listen(PORT, () => {
 //     }
 // },
 
+// src="http://localhost:4000/upload/6bd4bbc95702d827b634c7ab9a56dfb8"
