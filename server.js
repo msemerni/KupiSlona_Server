@@ -39,14 +39,13 @@ const getModels = userId => {
   const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
 
   class Ad extends Sequelize.Model {
-    get user() {
-    // get owner() {
-      return this.getUser()
-    }
-
     get images() {
-      return this.getImages()
+      return this.getImages();
     }
+    // get user() {
+    // // get owner() {
+    //   return this.getUser()
+    // }
   }
 
   Ad.init({
@@ -77,8 +76,6 @@ const getModels = userId => {
 
   class User extends Sequelize.Model {
     get avatar() {
-      // avatar = this.getAvatars({ order:[["id","DESC"]], limit : 1 });
-      // console.log("AVATAR: ", avatar);
       return this.getAvatars({ order:[["id","DESC"]], limit : 1 });
     }
   }
@@ -114,7 +111,8 @@ const getModels = userId => {
   User.hasMany(Image)
 
   Image.belongsTo(Ad)
-  Ad.hasMany(Image)
+  Ad.hasMany(Image, { 
+    foreignKey: 'adId' })
 
 // console.log(User.prototype);
 
@@ -175,7 +173,7 @@ input AdInput {
   price: Int
   address: String
   
-  imageIds: [ID]
+  images: [ID]
   
 }
 
@@ -188,7 +186,6 @@ type User {
   nick: String
   phones: String
   address: String
-
   avatar: [Image]
 }
 
@@ -199,8 +196,7 @@ input UserInput {
   nick: String
   phones: String
   address: String
-
-  avatar: ID
+  avatar: [ID]
 }
 
 type Image {
@@ -212,7 +208,6 @@ type Image {
   mimetype: String,
   filename: String,
   size: Int,
-
   url: String
 }
 
@@ -220,7 +215,6 @@ input ImageInput {
   id: ID,
   createdAt: String
   text: String,
-
   url: String
 }
 `)
@@ -260,24 +254,16 @@ const rootValue = {
   },
 
   async userUpdate({ myProfile }, { thisUser, models: { Image, User } }) {
-
-    console.log("MY-PROFILE:: ", myProfile);
-
     if (thisUser) {
           thisUser.id = thisUser.id;
           thisUser.login = myProfile.login;
           thisUser.nick = myProfile.nick;
           thisUser.phones = myProfile.phones;
           thisUser.address = myProfile.address;
-          
           await thisUser.save();
-
           await thisUser.addAvatar(myProfile.avatar);
-
-          console.log("THIS_USER: ", thisUser);
           return thisUser;
     }
-
     throw new Error("Unauthorized user");
   },
 
@@ -356,28 +342,33 @@ const rootValue = {
 
   async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      // console.log("'АД:::': ", ad);
+      console.log("'АД:::': ", ad);
 
       // if (await thisUser.hasImages(ad.imageIds)) {
         let dbAd;
-
         if (ad.id) {
           dbAd = await Ad.findByPk(ad.id);
-          // console.log("'DBAD': ", dbAd);
-          // console.log("'ad': ", ad);
+
           dbAd.title = ad.title;
           dbAd.tags = ad.tags;
           dbAd.price = ad.price;
           dbAd.description = ad.description;
           dbAd.address = ad.address;
-          // dbAd = ad;
+          // dbAd = ad; ?????
           await dbAd.save();
-          await dbAd.setImages(ad.imageIds);
+          // await dbAd.setImages(ad.imageIds);
+          await dbAd.addImage(ad.images);
           return dbAd;
         }
         else {
+
+          console.log("THIS____USER: ", thisUser);
+          console.log("'DBAD': ", dbAd);
+
+
+
           const dbAd = await thisUser.createAd(ad);
-          await dbAd.setImages(ad.imageIds);
+          await dbAd.addImage(ad.images);
           return dbAd;
         }
 
