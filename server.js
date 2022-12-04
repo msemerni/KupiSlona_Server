@@ -76,9 +76,11 @@ const getModels = userId => {
   // // sequelize.sync();
 
   class User extends Sequelize.Model {
-    // get userAds() {
-    //   return this.getAds()
-    // }
+    get avatar() {
+      // avatar = this.getAvatars({ order:[["id","DESC"]], limit : 1 });
+      // console.log("AVATAR: ", avatar);
+      return this.getAvatars({ order:[["id","DESC"]], limit : 1 });
+    }
   }
 
   User.init({
@@ -87,7 +89,6 @@ const getModels = userId => {
     nick: Sequelize.STRING,
     phones: Sequelize.STRING,
     address: Sequelize.STRING,
-    avatar: Sequelize.STRING,
   }, { sequelize, modelName: 'user' })
 
   User.hasMany(Ad)
@@ -105,7 +106,9 @@ const getModels = userId => {
   }, { sequelize, modelName: 'image' })
 
   Image.belongsTo(User, { as: 'avatar' })
-  User.hasMany(Image, { as: 'avatars' })
+  User.hasMany(Image, { 
+    as: 'avatars',
+    foreignKey: 'avatarId' })
 
   Image.belongsTo(User)
   User.hasMany(Image)
@@ -127,7 +130,6 @@ GlobalUser.init({
   nick: Sequelize.STRING,
   phones: Sequelize.STRING,
   address: Sequelize.STRING,
-  avatar: Sequelize.STRING,
 }, {sequelize, modelName: 'user'})
 
 
@@ -198,7 +200,7 @@ input UserInput {
   phones: String
   address: String
 
-  avatar: [ImageInput]
+  avatar: ID
 }
 
 type Image {
@@ -212,8 +214,6 @@ type Image {
   size: Int,
 
   url: String
-  userAvatar: User,
-
 }
 
 input ImageInput {
@@ -222,7 +222,6 @@ input ImageInput {
   text: String,
 
   url: String
-  userAvatar: UserInput
 }
 `)
 
@@ -260,43 +259,25 @@ const rootValue = {
     throw new Error("User already exist");
   },
 
-  // async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
-  //   if (thisUser) {
-  //     // console.log(thisUser);
-  //     if (await thisUser.hasImages(ad.imageIds)) {
-  //       let dbAd;
+  async userUpdate({ myProfile }, { thisUser, models: { Image, User } }) {
 
-  //       if (ad.id) {
-  //         dbAd = await Ad.findByPk(ad.id);
-  //         // console.log("'DBAD': ", dbAd);
-  //         // console.log("'ad': ", ad);
-  //         dbAd.title = ad.title;
+    console.log("MY-PROFILE:: ", myProfile);
 
-  async userUpdate({ myProfile }, { thisUser, models: { User } }) {
-
-    console.log("MY_PROFILE: ", myProfile);
-    // console.log("THIS_USER: ", thisUser);
-    // console.log("THIS_USER_ID: ", thisUser.id);
-            ///// thisUser === currentProfile ????????
     if (thisUser) {
-      let currentProfile = await User.findByPk(thisUser.id);
-      // console.log("CURRENT_PROFILE: ", currentProfile);
-      // let yyy = await thisUser.hasImages(myProfile.imageIds);
-      // console.log("YYYYYYYYYYYYYYYYY: ", yyy);
-      // if (await thisUser.hasImages(myProfile.imageIds)) {
-          currentProfile.id = currentProfile.id;
-          currentProfile.login = myProfile.login;
-          currentProfile.nick = myProfile.nick;
-          currentProfile.phones = myProfile.phones;
-          currentProfile.address = myProfile.address;
-          // currentProfile.avatar = myProfile.avatar;
-          await currentProfile.save();
-          // await currentProfile.setImages(myProfile.avatar.id);
-          // await currentProfile.setImages(myProfile.imageIds);
-          return currentProfile;
-      // }
-      // throw new Error("Not user's image");
+          thisUser.id = thisUser.id;
+          thisUser.login = myProfile.login;
+          thisUser.nick = myProfile.nick;
+          thisUser.phones = myProfile.phones;
+          thisUser.address = myProfile.address;
+          
+          await thisUser.save();
+
+          await thisUser.addAvatar(myProfile.avatar);
+
+          console.log("THIS_USER: ", thisUser);
+          return thisUser;
     }
+
     throw new Error("Unauthorized user");
   },
 
@@ -308,7 +289,7 @@ const rootValue = {
     throw new Error("Unauthorized user");
   },
 
-  async getAds({settings}, { thisUser, models: { Ad } }) {
+  async getAds({ settings }, { thisUser, models: { Ad } }) {
     if (thisUser) {
       const {order, offset, limit } = JSON.parse(settings)
       return await Ad.findAll({ order, offset, limit});
@@ -375,15 +356,15 @@ const rootValue = {
 
   async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      console.log("'АД:::': ", ad);
+      // console.log("'АД:::': ", ad);
 
       // if (await thisUser.hasImages(ad.imageIds)) {
         let dbAd;
 
         if (ad.id) {
           dbAd = await Ad.findByPk(ad.id);
-          console.log("'DBAD': ", dbAd);
-          console.log("'ad': ", ad);
+          // console.log("'DBAD': ", dbAd);
+          // console.log("'ad': ", ad);
           dbAd.title = ad.title;
           dbAd.tags = ad.tags;
           dbAd.price = ad.price;
@@ -480,19 +461,20 @@ app.listen(PORT, () => {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ; (async () => {
   // await sequelize.sync({ force: true }) // пересоздаст таблицы
+  // await sequelize.sync({ alter: true }) // приводит таблицу в соответствие с моделью
   ////// await sequelize.sync()
-  const vasya1 = await GlobalUser.create({ 
-    login: 'vasya', 
-    password: await hash('123', 10),
-  });
-  const petya2 = await GlobalUser.create({ 
-    login: 'petya', 
-    password: await hash('123', 10),
-  });
-  const elena = await GlobalUser.create({ 
-    login: 'elena33', 
-    password: await hash('123', 10),
-  });
+  // const vasya1 = await GlobalUser.create({ 
+  //   login: 'vasya', 
+  //   password: await hash('123', 10),
+  // });
+  // const petya2 = await GlobalUser.create({ 
+  //   login: 'petya', 
+  //   password: await hash('123', 10),
+  // });
+  // const elena = await GlobalUser.create({ 
+  //   login: 'elena33', 
+  //   password: await hash('123', 10),
+  // });
 
   // const models1 = getModels(1);
   // const models2 = getModels(2);
