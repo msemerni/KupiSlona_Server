@@ -367,7 +367,7 @@ const rootValue = {
 
 
 
-          const dbAd = await thisUser.createAd(ad);
+          dbAd = await thisUser.createAd(ad);
           await dbAd.addImage(ad.images);
           return dbAd;
         }
