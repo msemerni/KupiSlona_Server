@@ -211,7 +211,7 @@ type Image {
   filename: String,
   size: Int,
 
-  path: String
+  url: String
   userAvatar: User,
 
 }
@@ -221,7 +221,7 @@ input ImageInput {
   createdAt: String
   text: String,
 
-  path: String
+  url: String
   userAvatar: UserInput
 }
 `)
@@ -274,23 +274,24 @@ const rootValue = {
 
   async userUpdate({ myProfile }, { thisUser, models: { User } }) {
 
+    console.log("MY_PROFILE: ", myProfile);
     // console.log("THIS_USER: ", thisUser);
     // console.log("THIS_USER_ID: ", thisUser.id);
             ///// thisUser === currentProfile ????????
     if (thisUser) {
       let currentProfile = await User.findByPk(thisUser.id);
       // console.log("CURRENT_PROFILE: ", currentProfile);
-      // console.log("NEW_PROFILE: ", newProfile);
-      // let yyy = await thisUser.hasImages(newProfile.imageIds);
+      // let yyy = await thisUser.hasImages(myProfile.imageIds);
       // console.log("YYYYYYYYYYYYYYYYY: ", yyy);
-      // if (await thisUser.hasImages(newProfile.imageIds)) {
+      // if (await thisUser.hasImages(myProfile.imageIds)) {
           currentProfile.id = currentProfile.id;
           currentProfile.login = myProfile.login;
           currentProfile.nick = myProfile.nick;
           currentProfile.phones = myProfile.phones;
           currentProfile.address = myProfile.address;
-          // currentProfile = myProfile; ???
+          // currentProfile.avatar = myProfile.avatar;
           await currentProfile.save();
+          // await currentProfile.setImages(myProfile.avatar.id);
           // await currentProfile.setImages(myProfile.imageIds);
           return currentProfile;
       // }
@@ -301,6 +302,7 @@ const rootValue = {
 
   async getUser({ id }, { thisUser, models: { User } }) {
     if (thisUser) {
+      // console.log("THIS USER: ", thisUser);
       return await User.findByPk(id);
     }
     throw new Error("Unauthorized user");
@@ -441,17 +443,17 @@ app.use('/graphql', graphqlHTTP(async (req, res) => {
 app.post('/upload', upload.single('dropZone'), async (req, res) => {
 // app.post('/upload', upload.array('file'), async (req, res) => {    ???????????????
 
-  console.log("REQ_FILE: ", req.file);
+  // console.log("REQ_FILE: ", req.file);
 
     const decodedUser = jwtCheck(req)
     const models = getModels(decodedUser.id);
 
     if (decodedUser) {
       const {originalname, mimetype, filename, size, path} = req.file
-      console.log("P_A_T_H: ", path);
+      // console.log("P_A_T_H: ", path);
       url = path.slice(7);
       const image = await models.Image.create({originalname, mimetype, filename, size, url, userId: decodedUser.id})
-      console.log("I_M_A_G_E: ", image);
+      // console.log("I_M_A_G_E: ", image);
 
       res.status(201).end(JSON.stringify(image))
     }
@@ -479,44 +481,58 @@ app.listen(PORT, () => {
 ; (async () => {
   // await sequelize.sync({ force: true }) // пересоздаст таблицы
   ////// await sequelize.sync()
-  const vasya = await GlobalUser.create({ 
+  const vasya1 = await GlobalUser.create({ 
     login: 'vasya', 
-    password: await hash('123123', 10),
+    password: await hash('123', 10),
   });
-  const petya = await GlobalUser.create({ 
+  const petya2 = await GlobalUser.create({ 
     login: 'petya', 
-    password: await hash('123123', 10),
+    password: await hash('123', 10),
+  });
+  const elena = await GlobalUser.create({ 
+    login: 'elena33', 
+    password: await hash('123', 10),
   });
 
-  const models1 = getModels(1);
-  const models2 = getModels(2);
+  // const models1 = getModels(1);
+  // const models2 = getModels(2);
+  // const models3 = getModels(3);
 
-  await models1.Ad.create({
-    title: 'Продам телефон',
-    tags: "Electronics",
-    description: "Xiaomi MI9 ",
-    price: 700,
-    address: "Харьков",
-    userId: 1
-  })
+  // await models1.Ad.create({
+  //   title: 'Продам телефон',
+  //   tags: "Electronics",
+  //   description: "Xiaomi MI9 ",
+  //   price: 700,
+  //   address: "Харьков",
+  //   userId: 1
+  // })
 
-  await models2.Ad.create({
-    title: 'Продам диван',
-    tags: "House and garden",
-    description: "Новый диван",
-    price: 2000,
-    address: "Киев",
-    userId: 2
-  });
+  // await models2.Ad.create({
+  //   title: 'Продам диван',
+  //   tags: "House and garden",
+  //   description: "Новый диван",
+  //   price: 2000,
+  //   address: "Киев",
+  //   userId: 2
+  // });
 
-  await models1.Ad.create({
-     title: 'Частный дом',
-     tags: "House and garden",
-     description: "Частный дом 100 квадратов",
-     price: 15000,
-     address: "Харьков",
-     userId: 1
-     });
+  // await models3.Ad.create({
+  //    title: 'Частный дом',
+  //    tags: "House and garden",
+  //    description: "Частный дом 100 квадратов",
+  //    price: 15000,
+  //    address: "Харьков",
+  //    userId: 3
+  //    });
+
+  // await models3.Ad.create({
+  //    title: 'Дом',
+  //    tags: "House and garden",
+  //    description: "продам домик",
+  //    price: 8000,
+  //    address: "Харьков",
+  //    userId: 3
+  //    });
 
 })//();
 
