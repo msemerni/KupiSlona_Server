@@ -17,6 +17,9 @@ const PORT = 4000;
 // user: "mv"
 // password: "MyNewPass5!"
 
+// elena33
+// 123
+
 //////////////////////////////////////////////////////////////////
 function jwtCheck(req){
   if (req.headers.authorization){
@@ -42,10 +45,10 @@ const getModels = userId => {
     get images() {
       return this.getImages();
     }
-    // get user() {
-    // // get owner() {
-    //   return this.getUser()
-    // }
+    get user() {
+    // get owner() {
+      return this.getUser()
+    }
   }
 
   Ad.init({
@@ -356,16 +359,22 @@ const rootValue = {
           dbAd.address = ad.address;
           // dbAd = ad; ?????
           await dbAd.save();
-          // await dbAd.setImages(ad.imageIds);
+
+          
+          // await dbAd.images.destroy({where: {id}})
+          // await dbAd.images.destroy();
+          console.log("'DBAD': ", dbAd);
+          const DBAD_IMG = await dbAd.images;
+          console.log("'DBAD_IMG': ", DBAD_IMG);
+          // await dbAd.removeImage(dbAd.images);
+          // await dbAd.removeImage(dbAd.adId); // ???????????????????????????????????????
+
           await dbAd.addImage(ad.images);
           return dbAd;
         }
         else {
-
-          console.log("THIS____USER: ", thisUser);
-          console.log("'DBAD': ", dbAd);
-
-
+          // console.log("THIS____USER: ", thisUser);
+          // console.log("'DBAD': ", dbAd);
 
           dbAd = await thisUser.createAd(ad);
           await dbAd.addImage(ad.images);
