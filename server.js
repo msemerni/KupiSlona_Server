@@ -376,6 +376,9 @@ const rootValue = {
           // console.log("THIS____USER: ", thisUser);
           // console.log("'DBAD': ", dbAd);
 
+          // if (ad.tags.length === 0) {
+          // }
+
           dbAd = await thisUser.createAd(ad);
           await dbAd.addImage(ad.images);
           return dbAd;
