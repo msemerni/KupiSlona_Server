@@ -72,8 +72,20 @@ const getModels = userId => {
           }
         },
       },
-      
-      sequelize, modelName: 'ad' })
+      sequelize, 
+      modelName: 'ad',
+
+      hooks: {
+        beforeUpdate(ad){
+            if (ad.userId !== userId)
+                throw new Error('PERMISSION DENIED')
+        },
+        ////////////////// ??????????????????????????????
+      //   beforeDestroy(ad){
+      //     if (ad.userId !== userId)
+      //         throw new Error('PERMISSION DENIED')
+      // },
+    } })
 
   // // sequelize.sync();
 
