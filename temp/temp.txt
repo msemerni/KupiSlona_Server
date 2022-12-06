@@ -1,3 +1,380 @@
+mutation CreateUser($login: String!, $password: String!) {
+        createUser(login: $login, password: $password) {
+          id login
+        }
+}
+
+query Login($login: String!, $password: String!) {
+      login(login: $login, password: $password)
+}
+
+
+query thisUser ($ID: ID) {
+      getUser (id: $ID) {
+        id login nick createdAt phones address avatar {id url}
+      }
+    }
+
+# не работает:
+query allAds {
+    getAds {
+      id title price description createdAt tags address
+      user {id login nick} 
+      images{
+      	id 
+    	}
+    }
+}
+
+query SearchMyAds ($queryID: ID) {
+        userAdFind (id: $queryID) {
+          id title price description createdAt tags address user {id login}
+      }
+}
+
+
+query SearchAds ($queryString: String) {
+      AdSearch (queryString: $queryString) {
+        id title price description createdAt tags address user {id login}
+      }
+    }
+
+query FindAdByID ($id: ID) {
+      AdFindOne (id: $id) {
+        id title price description createdAt tags address
+    		user {id login phones}
+      }
+    }
+
+    
+mutation ChangeProfile($myProfile: UserInput) {
+    userUpdate(myProfile: $myProfile) {
+      id, createdAt, login, nick, phones, address
+    }
+}
+
+mutation upsertAd($ad: AdInput) {
+  upsertAd(ad:$ad) 
+  {
+    user {login} id title
+  }
+}
+
+
+mutation deleteAd ($id: ID) {
+      deleteAd (id: $id) {
+        id title
+      }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+
+# mutation upsertAd {
+#   upsertAd(ad: {
+#     id: 9,
+#     title: "Телефон 400",  
+#     tags: "Electronics",
+#     description: "Продам телефон50", 
+#     price: 400, 
+#     address: "Харьков250"
+#     imageIds: []}
+#   ) 
+#   {
+#     user {login} id title
+#   }
+# }
+
+
+
+# mutation newAd {
+#   addAd(ad: {
+#     title: "Компутхер",  
+#     tags: "Electronics",
+#     description: "Продам комп", 
+#     price: 100500, 
+#     address: "Харьков"
+#     imageIds: []}) 
+  
+#   {
+#     id user {
+#       nick, login
+#     }
+#   }
+# }
+
+
+# mutation updateAd {
+#   editAd(ad: {
+#     id: "1",
+#     title: "Телефон 4",  
+#     tags: "Electronics",
+#     description: "Продам телефон4", 
+#     price: 8200, 
+#     address: "Харьков8"
+#     imageIds: [1]}) 
+#   {
+#     user {
+#       login
+#     }
+#   }
+# }
+
+  # "myProfile": {
+  #   "id": 3,
+  #   "login": "elena333",
+  #   "nick": "Elena333",
+  #   "phones": "066-12345678",
+  #   "address": "Kharkiv",
+  # }
+
+  /////
+
+  {
+  "ID": 3,
+  "id": 64,
+  "queryID": 3,
+  "login": "elena33",
+  "password": "123",
+  "ad": {
+    "title": "Телефон 10",
+    "tags": "Electronics",
+    "description": "недорого телефон",
+    "price": 210,
+    "address": "Харьков 40",
+    "imageIds": []
+  },
+    "myProfile": {
+    "id": 3,
+    "login": "elena33",
+    "nick": "Elena33",
+    "phones": "066-12345678",
+    "address": "Kharkiv"
+  }
+}
+
+////
+{
+  "data": {
+    "userAdFind": [
+      {
+        "id": "95",
+        "title": "WWW",
+        "price": 200,
+        "description": "jkkk",
+        "createdAt": "1670200802000",
+        "tags": "Child's world",
+        "address": "",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "94",
+        "title": "Хомяк Хома2",
+        "price": 200,
+        "description": "Продам хомяка2",
+        "createdAt": "1670194612000",
+        "tags": "Animals",
+        "address": "Харьков",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "93",
+        "title": "хомяк",
+        "price": 150,
+        "description": "",
+        "createdAt": "1670194139000",
+        "tags": "Fashion & style",
+        "address": "",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "92",
+        "title": "777",
+        "price": 55,
+        "description": "uytju",
+        "createdAt": "1670192778000",
+        "tags": "Real estate",
+        "address": "ggg",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "91",
+        "title": "tt555",
+        "price": 100500,
+        "description": "gfghfhg",
+        "createdAt": "1670192501000",
+        "tags": "Hobby, recreation and sports",
+        "address": "fhfgjjh",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "89",
+        "title": "ttt",
+        "price": 5,
+        "description": "tr",
+        "createdAt": "1670191688000",
+        "tags": "Work",
+        "address": "fd",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "88",
+        "title": "yy",
+        "price": 0,
+        "description": "",
+        "createdAt": "1670191520000",
+        "tags": "Real estate",
+        "address": "",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "87",
+        "title": "5555",
+        "price": 888,
+        "description": "7777",
+        "createdAt": "1670191322000",
+        "tags": "Real estate",
+        "address": "99999",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "86",
+        "title": "444",
+        "price": 0,
+        "description": "",
+        "createdAt": "1670188798000",
+        "tags": "Auto",
+        "address": "",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "85",
+        "title": "bfgh",
+        "price": 0,
+        "description": "",
+        "createdAt": "1670188526000",
+        "tags": "Real estate",
+        "address": "",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "76",
+        "title": "Телефон 10",
+        "price": 210,
+        "description": "недорого телефон",
+        "createdAt": "1670104091000",
+        "tags": "Electronics",
+        "address": "Харьков 40",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "75",
+        "title": "Телефон 9",
+        "price": 20,
+        "description": "недорого телефон",
+        "createdAt": "1670104073000",
+        "tags": "Electronics",
+        "address": "Харьков 40",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      },
+      {
+        "id": "74",
+        "title": "Телефон 8",
+        "price": 2000,
+        "description": "недорого телефон-комп",
+        "createdAt": "1670104011000",
+        "tags": "Electronics",
+        "address": "Харьков 40",
+        "user": {
+          "id": "3",
+          "login": "elena33"
+        }
+      }
+    ]
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+
+
 mutation reg {
   createUser(login: "masha", password: "123123") {
     login nick
