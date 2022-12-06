@@ -78,13 +78,12 @@ const getModels = userId => {
       hooks: {
         beforeUpdate(ad){
             if (ad.userId !== userId)
-                throw new Error('PERMISSION DENIED')
+                throw new Error('PERMISSION DENIED: Not User`s Ad')
         },
-        ////////////////// ??????????????????????????????
-      //   beforeDestroy(ad){
-      //     if (ad.userId !== userId)
-      //         throw new Error('PERMISSION DENIED')
-      // },
+        beforeDestroy(ad){
+          if (ad.userId !== userId)
+              throw new Error('PERMISSION DENIED: Not User`s Ad')
+      },
     } })
 
   // // sequelize.sync();
@@ -303,7 +302,7 @@ const rootValue = {
       // console.log("АйДи", id);
 
       let ad = await Ad.findByPk(id);
-      console.log(ad);
+      // console.log(ad);
       return ad;
 
     }
@@ -338,18 +337,22 @@ const rootValue = {
   
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      try {
-        let ad = await Ad.findByPk(id);
-        // let user = await User.findByPk(thisUser.id);
-        // await user.removeAd(ad);
-        await Ad.destroy(
-          { where: { id } })
+      // try {
+        let dbAd = await Ad.findByPk(id);
+        // // let user = await User.findByPk(thisUser.id);
+        // await thisUser.removeAd(ad);
+        // await thisUser.removeAd(ad.id);
 
-        return ad;
+        // await Ad.destroy(
+        //   { where: { id } })
 
-      } catch (error) {
-        throw new Error("Something went wrong");
-      }
+        await dbAd.destroy();
+
+        return dbAd;
+
+      // } catch (error) {
+      //   throw new Error("Something went wrong");
+      // }
 
     }
     throw new Error("Unauthorized user");
