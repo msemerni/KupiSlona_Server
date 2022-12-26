@@ -19,8 +19,8 @@ const PORT = 4000;
 
 // elena33
 // 123
-//////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////
 function jwtCheck(req){
   if (req.headers.authorization){
       const token = req.headers.authorization.slice(7)
@@ -33,9 +33,12 @@ function jwtCheck(req){
   }
 }
 
+// const { now } = require('sequelize/types/utils');
 const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
 
+
 const getModels = userId => {
+
   const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
 
   class Ad extends Sequelize.Model {
@@ -43,6 +46,7 @@ const getModels = userId => {
       return this.getImages();
     }
     get user() {
+    // get owner() {
       return this.getUser()
     }
   }
@@ -75,6 +79,8 @@ const getModels = userId => {
               throw new Error('PERMISSION DENIED: Not User`s Ad')
       },
     } })
+ 
+  // // sequelize.sync();
 
   class User extends Sequelize.Model {
     get avatar() {
@@ -116,9 +122,11 @@ const getModels = userId => {
   Ad.hasMany(Image, { 
     foreignKey: 'adId' })
 
+// console.log(User.prototype);
+
   return { Ad, User, Image }
 }
-
+//////////////////////////////////////////
 class GlobalUser extends Sequelize.Model {
 }
 
@@ -174,6 +182,7 @@ input AdInput {
   address: String
   
   images: [ID]
+  
 }
 
 type User {
@@ -220,13 +229,14 @@ input ImageInput {
 
 
 const rootValue = {
+
   async login({ login, password }) {
     if (!login || !password) {
       throw new Error("Wrong creditnails");
     }
 
     const user = await GlobalUser.findOne({ where: { login } })
-
+    // console.log("u_s_e_r", user);
     if (!user) {
       throw new Error("User not found");
     }
@@ -267,6 +277,7 @@ const rootValue = {
 
   async getUser({ id }, { thisUser, models: { User } }) {
     if (thisUser) {
+      // console.log("THIS USER: ", thisUser);
       return await User.findByPk(id);
     }
     throw new Error("Unauthorized user");
@@ -282,8 +293,12 @@ const rootValue = {
 
   async AdFindOne({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
+      // console.log("АйДи", id);
+
       let ad = await Ad.findByPk(id);
+      // console.log(ad);
       return ad;
+
     }
     throw new Error("Unauthorized user");
   },
@@ -307,6 +322,7 @@ const rootValue = {
         ]
       }});
 
+      console.log(ads);
       return ads;
     }
     throw new Error("Unauthorized user");
@@ -315,23 +331,36 @@ const rootValue = {
   
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
-      try {
+      // try {
         let dbAd = await Ad.findByPk(id);
+        // // let user = await User.findByPk(thisUser.id);
+        // await thisUser.removeAd(ad);
+        // await thisUser.removeAd(ad.id);
+
+        // await Ad.destroy(
+        //   { where: { id } })
+
         await dbAd.destroy();
+
         return dbAd;
 
-      } catch (error) {
-        throw new Error("Something went wrong");
-      }
+      // } catch (error) {
+      //   throw new Error("Something went wrong");
+      // }
+
     }
     throw new Error("Unauthorized user");
   },
 
   async upsertAd({ ad }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
+      console.log("АД:::: ", ad);
+
+      // if (await thisUser.hasImages(ad.imageIds)) {
         let dbAd;
         if (ad.id) {
           dbAd = await Ad.findByPk(ad.id);
+
           dbAd.title = ad.title;
           dbAd.tags = ad.tags;
           dbAd.price = ad.price;
@@ -339,15 +368,47 @@ const rootValue = {
           dbAd.address = ad.address;
           // dbAd = ad; ?????
           await dbAd.save();
+
+          
+          // await dbAd.images.destroy({where: {id}})
+          const COUNT = await dbAd.countImages();
+          console.log("C O U N T:", COUNT);
+          console.log("'DBAD': ", dbAd);
+
+          // await dbAd.removeImage(dbAd.imageId);
+
+
+          // await dbAd.images.destroy();
+          // const DBAD_IMG = await dbAd.images;
+          // console.log("'DBAD_IMG': ", DBAD_IMG);
+          // await dbAd.removeImage(dbAd.images);
+          // await dbAd.removeImage(dbAd.adId); // ???????????????????????????????????????
+
           await dbAd.addImage(ad.images);
           return dbAd;
         }
         else {
+          // console.log("THIS____USER: ", thisUser);
+          // console.log("'DBAD': ", dbAd);
+
+          // if (ad.tags.length === 0) {
+          // }
+          console.log("АД_2:::: ", ad);
+          console.log("АД_2_images:::: ", ad.images);
+          // console.log("АД_2_images.id:::: ", ad.images.id);
+
           dbAd = ad;
+
+
+
           dbAd = await thisUser.createAd(dbAd);
           await dbAd.addImage(ad.images);
           return dbAd;
         }
+
+        // return dbAd;
+      // }
+      // throw new Error("Not user's image");
     }
     throw new Error("Unauthorized user");
   },
@@ -356,17 +417,19 @@ const rootValue = {
 
 
 const app = express();
-
 app.use(express.static('public'));
-
 app.use(bodyParser.json());
+
 
 app.use('/graphql', graphqlHTTP(async (req, res) => {
   const decodedUser = jwtCheck(req);
+  // console.log("DECODED USER: ", decodedUser);
 
   if (decodedUser) {
     const models = getModels(decodedUser.id);
     const thisUser = await models.User.findByPk(decodedUser.id)
+    // console.log("MODELS: ", models) // { Ad: ad, User: user, Image: image }
+    // console.log("ThIs USER: ", thisUser) //user {dataValues: {id: 1,login: 'vasya'.....
     return {
       schema,
       rootValue,
@@ -382,22 +445,144 @@ app.use('/graphql', graphqlHTTP(async (req, res) => {
   }
 }))
 
+
 app.post('/upload', upload.single('dropZone'), async (req, res) => {
+// app.post('/upload', upload.array('file'), async (req, res) => {    ???????????????
+
+  // console.log("REQ_FILE: ", req.file);
+
     const decodedUser = jwtCheck(req)
     const models = getModels(decodedUser.id);
 
     if (decodedUser) {
       const {originalname, mimetype, filename, size, path} = req.file
+      // console.log("P_A_T_H: ", path);
       url = path.slice(7);
       const image = await models.Image.create({originalname, mimetype, filename, size, url, userId: decodedUser.id})
+      // console.log("I_M_A_G_E: ", image);
 
       res.status(201).end(JSON.stringify(image))
     }
     else {
       res.status(403).end('Unauthorized file upload prohibited')
   }
+    
 });
 
 app.listen(PORT, () => {
   console.log(`"${APP_NAME}" is listening on port:${PORT}`)
 })
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+; (async () => {
+  // await sequelize.sync({ force: true }) // пересоздаст таблицы
+  // await sequelize.sync({ alter: true }) // приводит таблицу в соответствие с моделью
+  ////// await sequelize.sync()
+  // const vasya1 = await GlobalUser.create({ 
+  //   login: 'vasya', 
+  //   password: await hash('123', 10),
+  // });
+  // const petya2 = await GlobalUser.create({ 
+  //   login: 'petya', 
+  //   password: await hash('123', 10),
+  // });
+  // const elena = await GlobalUser.create({ 
+  //   login: 'elena33', 
+  //   password: await hash('123', 10),
+  // });
+
+  // const models1 = getModels(1);
+  // const models2 = getModels(2);
+  // const models3 = getModels(3);
+
+  // await models1.Ad.create({
+  //   title: 'Продам телефон',
+  //   tags: "Electronics",
+  //   description: "Xiaomi MI9 ",
+  //   price: 700,
+  //   address: "Харьков",
+  //   userId: 1
+  // })
+
+  // await models2.Ad.create({
+  //   title: 'Продам диван',
+  //   tags: "House and garden",
+  //   description: "Новый диван",
+  //   price: 2000,
+  //   address: "Киев",
+  //   userId: 2
+  // });
+
+  // await models3.Ad.create({
+  //    title: 'Частный дом',
+  //    tags: "House and garden",
+  //    description: "Частный дом 100 квадратов",
+  //    price: 15000,
+  //    address: "Харьков",
+  //    userId: 3
+  //    });
+
+  // await models3.Ad.create({
+  //    title: 'Дом',
+  //    tags: "House and garden",
+  //    description: "продам домик",
+  //    price: 8000,
+  //    address: "Харьков",
+  //    userId: 3
+  //    });
+
+})//();
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+//   async addAd({ ad }, {thisUser, models: {User}}) {
+//     if (thisUser) {
+//       if (await thisUser.hasImages(ad.imageIds)) {
+//         const newAd = await thisUser.createAd(ad);
+//         await newAd.setImages(ad.imageIds);
+//         return newAd;
+//       }
+//       throw new Error("Not user's image");
+//     }
+
+//     throw new Error("Unauthorized user");
+
+//   },
+
+//   async editAd({ ad }, { thisUser, models: {Ad} }){
+//     if (thisUser && await thisUser.hasImages(ad.imageIds || [])){
+//         let dbAd = await Ad.findByPk(ad.id);
+
+//         // console.log("'DBAD': ", dbAd);
+//         // console.log("'ad': ", ad);
+
+//         dbAd.title = ad.title;
+//         dbAd.tags = ad.tags;
+//         dbAd.price = ad.price;
+//         dbAd.description = ad.description;
+//         dbAd.address = ad.address;
+
+//         // dbAd = ad;
+
+//         await dbAd.save();
+//         await dbAd.setImages(ad.imageIds);
+
+//         return dbAd;
+//     }
+// },
+
+// src="http://localhost:4000/upload/6bd4bbc95702d827b634c7ab9a56dfb8"
