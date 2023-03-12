@@ -328,7 +328,6 @@ const rootValue = {
     throw new Error("Unauthorized user");
   },
 
-  
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
       // try {
