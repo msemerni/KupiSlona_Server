@@ -387,7 +387,6 @@ const rootValue = {
           dbAd.address = ad.address;
           // dbAd = ad; ?????
           await dbAd.save();
-
           
           // await dbAd.images.destroy({where: {id}})
           const COUNT = await dbAd.countImages();
@@ -396,12 +395,11 @@ const rootValue = {
 
           // await dbAd.removeImage(dbAd.imageId);
 
-
           // await dbAd.images.destroy();
           // const DBAD_IMG = await dbAd.images;
           // console.log("'DBAD_IMG': ", DBAD_IMG);
           // await dbAd.removeImage(dbAd.images);
-          // await dbAd.removeImage(dbAd.adId); // ???????????????????????????????????????
+          // await dbAd.removeImage(dbAd.adId); // ??
 
           await dbAd.addImage(ad.images);
           return dbAd;
@@ -409,22 +407,16 @@ const rootValue = {
         else {
           // console.log("THIS____USER: ", thisUser);
           // console.log("'DBAD': ", dbAd);
-
           // if (ad.tags.length === 0) {
           // }
-          console.log("АД_2:::: ", ad);
-          console.log("АД_2_images:::: ", ad.images);
+          // console.log("АД_2:::: ", ad);
+          // console.log("АД_2_images:::: ", ad.images);
           // console.log("АД_2_images.id:::: ", ad.images.id);
-
           dbAd = ad;
-
-
-
           dbAd = await thisUser.createAd(dbAd);
           await dbAd.addImage(ad.images);
           return dbAd;
         }
-
         // return dbAd;
       // }
       // throw new Error("Not user's image");
@@ -466,7 +458,7 @@ app.use('/graphql', graphqlHTTP(async (req, res) => {
 
 
 app.post('/upload', upload.single('dropZone'), async (req, res) => {
-// app.post('/upload', upload.array('file'), async (req, res) => {    ???????????????
+// app.post('/upload', upload.array('file'), async (req, res) => {    ????
 
   // console.log("REQ_FILE: ", req.file);
 
@@ -485,7 +477,6 @@ app.post('/upload', upload.single('dropZone'), async (req, res) => {
     else {
       res.status(403).end('Unauthorized file upload prohibited')
   }
-    
 });
 
 app.listen(PORT, () => {
@@ -605,3 +596,60 @@ app.listen(PORT, () => {
 // },
 
 // src="http://localhost:4000/upload/6bd4bbc95702d827b634c7ab9a56dfb8"
+
+
+
+///////////////
+
+//// SQL
+
+// -- `kupislona-db`.ads definition
+// CREATE TABLE `ads` (
+//   `id` int NOT NULL AUTO_INCREMENT,
+//   `title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `tags` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `description` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `price` int DEFAULT NULL,
+//   `address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `createdAt` datetime NOT NULL,
+//   `updatedAt` datetime NOT NULL,
+//   `userId` int DEFAULT NULL,
+//   PRIMARY KEY (`id`),
+//   KEY `userId` (`userId`)
+// ) ENGINE=InnoDB AUTO_INCREMENT=121 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/////////
+
+// -- `kupislona-db`.images definition
+// CREATE TABLE `images` (
+//   `id` int NOT NULL AUTO_INCREMENT,
+//   `originalname` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `mimetype` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `filename` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   `size` int DEFAULT NULL,
+//   `createdAt` datetime NOT NULL,
+//   `updatedAt` datetime NOT NULL,
+//   `avatarId` int DEFAULT NULL,
+//   `userId` int DEFAULT NULL,
+//   `adId` int DEFAULT NULL,
+//   `url` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+//   PRIMARY KEY (`id`),
+//   KEY `avatarId` (`avatarId`),
+//   KEY `userId` (`userId`),
+//   KEY `adId` (`adId`)
+// ) ENGINE=InnoDB AUTO_INCREMENT=570 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/////////
+
+// -- `kupislona-db`.users definition
+// CREATE TABLE `users` (
+//   `id` int NOT NULL AUTO_INCREMENT,
+//   `login` varchar(255) DEFAULT NULL,
+//   `password` varchar(255) DEFAULT NULL,
+//   `nick` varchar(255) DEFAULT NULL,
+//   `phones` varchar(255) DEFAULT NULL,
+//   `address` varchar(255) DEFAULT NULL,
+//   `createdAt` datetime NOT NULL,
+//   `updatedAt` datetime NOT NULL,
+//   PRIMARY KEY (`id`)
+// ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
