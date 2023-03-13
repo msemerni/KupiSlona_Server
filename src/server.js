@@ -16,6 +16,9 @@ const PORT = 4000;
 // mariaDB:
 // user: "mv"
 // password: "MyNewPass5!"
+// AWS-RDS:
+// user: "mv"
+// password: "MyNewPass5!"
 
 // elena33
 // 123
@@ -33,13 +36,26 @@ function jwtCheck(req){
   }
 }
 
-// const { now } = require('sequelize/types/utils');
-const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
+const dbOptions = {
+  host: 'kupislona-db.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
+  port: 3306,
+  logging: console.log,
+  maxConcurrentQueries: 100,
+  dialect: 'mysql',
+  dialectOptions: {
+      ssl:'Amazon RDS'
+  },
+  pool: { maxConnections: 5, maxIdleTime: 30},
+  language: 'en'
+}
 
+// const { now } = require('sequelize/types/utils');
+// const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
+const sequelize = new Sequelize("kupislona-db", "mv", "MyNewPass5!", dbOptions);
 
 const getModels = userId => {
-
-  const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
+  // const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
+  const sequelize = new Sequelize("kupislona-db", "mv", "MyNewPass5!", dbOptions);
 
   class Ad extends Sequelize.Model {
     get images() {
@@ -284,22 +300,26 @@ const rootValue = {
   },
 
   async getAds({ settings }, { thisUser, models: { Ad } }) {
-    if (thisUser) {
+
+    //// ВРЕМЕННО ЗАКОММЕНТИЛ:
+    // if (thisUser) {
       const {order, offset, limit } = JSON.parse(settings)
       return await Ad.findAll({ order, offset, limit});
-    }
+    // }
     throw new Error("Unauthorized user");
   },
 
   async AdFindOne({ id }, { thisUser, models: { User, Ad } }) {
-    if (thisUser) {
+
+    //// ВРЕМЕННО ЗАКОММЕНТИЛ:
+    // if (thisUser) {
       // console.log("АйДи", id);
 
       let ad = await Ad.findByPk(id);
       // console.log(ad);
       return ad;
 
-    }
+    // }
     throw new Error("Unauthorized user");
   },
 
@@ -483,64 +503,64 @@ app.listen(PORT, () => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
-; (async () => {
-  // await sequelize.sync({ force: true }) // пересоздаст таблицы
-  // await sequelize.sync({ alter: true }) // приводит таблицу в соответствие с моделью
-  ////// await sequelize.sync()
-  // const vasya1 = await GlobalUser.create({ 
-  //   login: 'vasya', 
-  //   password: await hash('123', 10),
-  // });
-  // const petya2 = await GlobalUser.create({ 
-  //   login: 'petya', 
-  //   password: await hash('123', 10),
-  // });
-  // const elena = await GlobalUser.create({ 
-  //   login: 'elena33', 
-  //   password: await hash('123', 10),
-  // });
+// ; (async () => {
+//   await sequelize.sync({ force: true }) // пересоздаст таблицы
+//   await sequelize.sync({ alter: true }) // приводит таблицу в соответствие с моделью
+//   //// await sequelize.sync()
+//   const vasya1 = await GlobalUser.create({ 
+//     login: 'vasya', 
+//     password: await hash('123', 10),
+//   });
+//   const petya2 = await GlobalUser.create({ 
+//     login: 'petya', 
+//     password: await hash('123', 10),
+//   });
+//   const elena = await GlobalUser.create({ 
+//     login: 'elena33', 
+//     password: await hash('123', 10),
+//   });
 
-  // const models1 = getModels(1);
-  // const models2 = getModels(2);
-  // const models3 = getModels(3);
+//   const models1 = getModels(1);
+//   const models2 = getModels(2);
+//   const models3 = getModels(3);
 
-  // await models1.Ad.create({
-  //   title: 'Продам телефон',
-  //   tags: "Electronics",
-  //   description: "Xiaomi MI9 ",
-  //   price: 700,
-  //   address: "Харьков",
-  //   userId: 1
-  // })
+//   await models1.Ad.create({
+//     title: 'Продам телефон',
+//     tags: "Electronics",
+//     description: "Xiaomi MI9 ",
+//     price: 700,
+//     address: "Харьков",
+//     userId: 1
+//   })
 
-  // await models2.Ad.create({
-  //   title: 'Продам диван',
-  //   tags: "House and garden",
-  //   description: "Новый диван",
-  //   price: 2000,
-  //   address: "Киев",
-  //   userId: 2
-  // });
+//   await models2.Ad.create({
+//     title: 'Продам диван',
+//     tags: "House and garden",
+//     description: "Новый диван",
+//     price: 2000,
+//     address: "Киев",
+//     userId: 2
+//   });
 
-  // await models3.Ad.create({
-  //    title: 'Частный дом',
-  //    tags: "House and garden",
-  //    description: "Частный дом 100 квадратов",
-  //    price: 15000,
-  //    address: "Харьков",
-  //    userId: 3
-  //    });
+//   await models3.Ad.create({
+//      title: 'Частный дом',
+//      tags: "House and garden",
+//      description: "Частный дом 100 квадратов",
+//      price: 15000,
+//      address: "Харьков",
+//      userId: 3
+//      });
 
-  // await models3.Ad.create({
-  //    title: 'Дом',
-  //    tags: "House and garden",
-  //    description: "продам домик",
-  //    price: 8000,
-  //    address: "Харьков",
-  //    userId: 3
-  //    });
+//   await models3.Ad.create({
+//      title: 'Дом',
+//      tags: "House and garden",
+//      description: "продам домик",
+//      price: 8000,
+//      address: "Харьков",
+//      userId: 3
+//      });
 
-})//();
+// })();
 
 
 
