@@ -12,6 +12,7 @@ const { Op } = require("sequelize");
 const APP_NAME = 'KupiSlona';
 const JWT_SALT = 'JwT_SaLt82&';
 const PORT = 4000;
+// const PORT = 443;
 
 // mariaDB:
 // user: "mv"
