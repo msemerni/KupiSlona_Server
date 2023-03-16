@@ -432,15 +432,22 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
-app.use('/check',(async (req, res) => {
-  const models = getModels(1);
+app.use('/check', (async (req, res) => {
+  try {
+    const models = getModels(1);
 
-  const result = await models.Ad.findAll()
+    const result = await models.Ad.findAll()
 
-  // res.json({"1": 123})
-  // const result = await Ad.findAll();
-  console.log(result);
-  res.json(result)
+    // res.json({"1": 123})
+    // const result = await Ad.findAll();
+    console.log(result);
+    res.json(result)
+  } catch (error) {
+    console.log(error);
+    res.send(error)
+
+  }
+
 
 }))
 
