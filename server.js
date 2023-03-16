@@ -64,7 +64,7 @@ const sequelize = new Sequelize("kupislona-db", "mv", "MyNewPass5!", dbOptions);
 sequelize.authenticate().then(() => {
   console.log('Connection to database has been established successfully.');
 }).catch(err => {
-  console.error('Unable to connect to database:', err);
+  console.error('Unable to connect to database::', err);
 });
  
 const getModels = userId => {
@@ -74,7 +74,7 @@ const getModels = userId => {
   sequelize.authenticate().then(() => {
     console.log('Connection to database has been established successfully.');
   }).catch(err => {
-    console.error('Unable to connect to database:', err);
+    console.error('Unable to connect to database:::', err);
   });
 
   class Ad extends Sequelize.Model {
