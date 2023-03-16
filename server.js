@@ -432,6 +432,11 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
+app.use('/check',((req, res) => {
+  res.json({"1": 123})
+  console.log("HELLO");
+}))
+
 
 app.use('/graphql', graphqlHTTP(async (req, res) => {
   const decodedUser = jwtCheck(req);
