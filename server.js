@@ -54,6 +54,7 @@ const dbOptions = {
   //   acquire: 30000
   // },
   pool: { maxConnections: 5, maxIdleTime: 30},
+  timeout: 30000,
   language: 'en'
 }
 
