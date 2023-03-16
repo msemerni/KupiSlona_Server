@@ -39,7 +39,8 @@ function jwtCheck(req){
 
 const dbOptions = {
   host: 'kupislona-db.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
-  port: 3306,
+  // port: 3306,
+  port: 8889,
   logging: console.log,
   maxConcurrentQueries: 100,
   dialect: 'mysql',
