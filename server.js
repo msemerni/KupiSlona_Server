@@ -46,7 +46,14 @@ const dbOptions = {
   dialectOptions: {
       ssl:'Amazon RDS'
   },
-  pool: { maxConnections: 5, maxIdleTime: 30},
+  pool: {
+    max: 15,
+    min: 5,
+    idle: 20000,
+    evict: 15000,
+    acquire: 30000
+  },
+  // pool: { maxConnections: 5, maxIdleTime: 30},
   language: 'en'
 }
 
