@@ -66,7 +66,7 @@ sequelize.authenticate().then(() => {
 }).catch(err => {
   console.error('Unable to connect to database:', err);
 });
-
+ 
 const getModels = userId => {
   // const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
   const sequelize = new Sequelize("kupislona-db", "mv", "MyNewPass5!", dbOptions);
