@@ -25,44 +25,46 @@ const PORT = 4000;
 // 123
 
 //////////////////////////////////////////////////////////////////
-function jwtCheck(req){
-  if (req.headers.authorization){
-      const token = req.headers.authorization.slice(7)
-      try {
-          return verify(token, JWT_SALT)
-      }
-      catch(e){
-        console.log("ERROR: ", e);
-      }
+function jwtCheck(req) {
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.slice(7)
+    try {
+      return verify(token, JWT_SALT)
+    }
+    catch (e) {
+      console.log("ERROR: ", e);
+    }
   }
 }
 
 const dbOptions = {
-  host: 'kupislona-db.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
+  // host: 'kupislona-db.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
+  host: 'kupislonadb.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
   port: 3306,
   logging: console.log,
   maxConcurrentQueries: 100,
   dialect: 'mysql',
   dialectOptions: {
-      ssl:'Amazon RDS'
+    ssl: 'Amazon RDS'
   },
-  pool: { maxConnections: 5, maxIdleTime: 30},
+  pool: { maxConnections: 5, maxIdleTime: 30 },
   language: 'en'
 }
 
 // const { now } = require('sequelize/types/utils');
+
 // const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
-const sequelize = new Sequelize("kupislona-db", "mv", "MyNewPass5!", dbOptions);
+const sequelize = new Sequelize("kupislonadb", "mv", "MyNewPass5!", dbOptions);
 
 sequelize.authenticate().then(() => {
   console.log('Connection to database has been established successfully.');
 }).catch(err => {
   console.error('Unable to connect to database::', err);
 });
- 
+
 const getModels = userId => {
   // const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
-  const sequelize = new Sequelize("kupislona-db", "mv", "MyNewPass5!", dbOptions);
+  const sequelize = new Sequelize("kupislonadb", "mv", "MyNewPass5!", dbOptions);
 
   sequelize.authenticate().then(() => {
     console.log('Connection to database has been established successfully.');
@@ -75,7 +77,7 @@ const getModels = userId => {
       return this.getImages();
     }
     get user() {
-    // get owner() {
+      // get owner() {
       return this.getUser()
     }
   }
@@ -86,8 +88,8 @@ const getModels = userId => {
     description: Sequelize.STRING,
     price: Sequelize.INTEGER,
     address: Sequelize.STRING,
-    },
-    { 
+  },
+    {
       scopes: {
         deleted: {
           where: {
@@ -95,25 +97,26 @@ const getModels = userId => {
           }
         },
       },
-      sequelize, 
+      sequelize,
       modelName: 'ad',
 
       hooks: {
-        beforeUpdate(ad){
-            if (ad.userId !== userId)
-                throw new Error('PERMISSION DENIED: Not User`s Ad')
-        },
-        beforeDestroy(ad){
+        beforeUpdate(ad) {
           if (ad.userId !== userId)
-              throw new Error('PERMISSION DENIED: Not User`s Ad')
-      },
-    } })
- 
+            throw new Error('PERMISSION DENIED: Not User`s Ad')
+        },
+        beforeDestroy(ad) {
+          if (ad.userId !== userId)
+            throw new Error('PERMISSION DENIED: Not User`s Ad')
+        },
+      }
+    })
+
   // // sequelize.sync();
 
   class User extends Sequelize.Model {
     get avatar() {
-      return this.getAvatars({ order:[["id","DESC"]], limit : 1 });
+      return this.getAvatars({ order: [["id", "DESC"]], limit: 1 });
     }
   }
 
@@ -140,18 +143,20 @@ const getModels = userId => {
   }, { sequelize, modelName: 'image' })
 
   Image.belongsTo(User, { as: 'avatar' })
-  User.hasMany(Image, { 
+  User.hasMany(Image, {
     as: 'avatars',
-    foreignKey: 'avatarId' })
+    foreignKey: 'avatarId'
+  })
 
   Image.belongsTo(User)
   User.hasMany(Image)
 
   Image.belongsTo(Ad)
-  Ad.hasMany(Image, { 
-    foreignKey: 'adId' })
+  Ad.hasMany(Image, {
+    foreignKey: 'adId'
+  })
 
-// console.log(User.prototype);
+  // console.log(User.prototype);
 
   return { Ad, User, Image }
 }
@@ -165,7 +170,7 @@ GlobalUser.init({
   nick: Sequelize.STRING,
   phones: Sequelize.STRING,
   address: Sequelize.STRING,
-}, {sequelize, modelName: 'user'})
+}, { sequelize, modelName: 'user' })
 
 
 const schema = buildSchema(`
@@ -292,14 +297,14 @@ const rootValue = {
 
   async userUpdate({ myProfile }, { thisUser, models: { Image, User } }) {
     if (thisUser) {
-          thisUser.id = thisUser.id;
-          thisUser.login = myProfile.login;
-          thisUser.nick = myProfile.nick;
-          thisUser.phones = myProfile.phones;
-          thisUser.address = myProfile.address;
-          await thisUser.save();
-          await thisUser.addAvatar(myProfile.avatar);
-          return thisUser;
+      thisUser.id = thisUser.id;
+      thisUser.login = myProfile.login;
+      thisUser.nick = myProfile.nick;
+      thisUser.phones = myProfile.phones;
+      thisUser.address = myProfile.address;
+      await thisUser.save();
+      await thisUser.addAvatar(myProfile.avatar);
+      return thisUser;
     }
     throw new Error("Unauthorized user");
   },
@@ -316,8 +321,8 @@ const rootValue = {
 
     //// ВРЕМЕННО ЗАКОММЕНТИЛ:
     // if (thisUser) {
-      const {order, offset, limit } = JSON.parse(settings)
-      return await Ad.findAll({ order, offset, limit});
+    const { order, offset, limit } = JSON.parse(settings)
+    return await Ad.findAll({ order, offset, limit });
     // }
     throw new Error("Unauthorized user");
   },
@@ -326,11 +331,11 @@ const rootValue = {
 
     //// ВРЕМЕННО ЗАКОММЕНТИЛ:
     // if (thisUser) {
-      // console.log("АйДи", id);
+    // console.log("АйДи", id);
 
-      let ad = await Ad.findByPk(id);
-      // console.log(ad);
-      return ad;
+    let ad = await Ad.findByPk(id);
+    // console.log(ad);
+    return ad;
 
     // }
     throw new Error("Unauthorized user");
@@ -339,7 +344,7 @@ const rootValue = {
   async userAdFind({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
       console.log(id);
-      let ads = await Ad.findAll({ order:[["id","DESC"]], where: { UserId: id } });
+      let ads = await Ad.findAll({ order: [["id", "DESC"]], where: { UserId: id } });
       return ads;
     }
     throw new Error("Unauthorized user");
@@ -348,12 +353,14 @@ const rootValue = {
   async AdSearch({ queryString }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
       console.log(queryString);
-      let ads = await Ad.findAll({ where: {
-        [Op.or]: [
-          {title: { [Op.like]: `%${queryString}%` }},
-          {description: { [Op.like]: `%${queryString}%` }},
-        ]
-      }});
+      let ads = await Ad.findAll({
+        where: {
+          [Op.or]: [
+            { title: { [Op.like]: `%${queryString}%` } },
+            { description: { [Op.like]: `%${queryString}%` } },
+          ]
+        }
+      });
 
       console.log(ads);
       return ads;
@@ -364,17 +371,17 @@ const rootValue = {
   async deleteAd({ id }, { thisUser, models: { User, Ad } }) {
     if (thisUser) {
       // try {
-        let dbAd = await Ad.findByPk(id);
-        // // let user = await User.findByPk(thisUser.id);
-        // await thisUser.removeAd(ad);
-        // await thisUser.removeAd(ad.id);
+      let dbAd = await Ad.findByPk(id);
+      // // let user = await User.findByPk(thisUser.id);
+      // await thisUser.removeAd(ad);
+      // await thisUser.removeAd(ad.id);
 
-        // await Ad.destroy(
-        //   { where: { id } })
+      // await Ad.destroy(
+      //   { where: { id } })
 
-        await dbAd.destroy();
+      await dbAd.destroy();
 
-        return dbAd;
+      return dbAd;
 
       // } catch (error) {
       //   throw new Error("Something went wrong");
@@ -389,48 +396,48 @@ const rootValue = {
       console.log("АД:::: ", ad);
 
       // if (await thisUser.hasImages(ad.imageIds)) {
-        let dbAd;
-        if (ad.id) {
-          dbAd = await Ad.findByPk(ad.id);
+      let dbAd;
+      if (ad.id) {
+        dbAd = await Ad.findByPk(ad.id);
 
-          dbAd.title = ad.title;
-          dbAd.tags = ad.tags;
-          dbAd.price = ad.price;
-          dbAd.description = ad.description;
-          dbAd.address = ad.address;
-          // dbAd = ad; ?????
-          await dbAd.save();
-          
-          // await dbAd.images.destroy({where: {id}})
-          const COUNT = await dbAd.countImages();
-          console.log("C O U N T:", COUNT);
-          console.log("'DBAD': ", dbAd);
+        dbAd.title = ad.title;
+        dbAd.tags = ad.tags;
+        dbAd.price = ad.price;
+        dbAd.description = ad.description;
+        dbAd.address = ad.address;
+        // dbAd = ad; ?????
+        await dbAd.save();
 
-          // await dbAd.removeImage(dbAd.imageId);
+        // await dbAd.images.destroy({where: {id}})
+        const COUNT = await dbAd.countImages();
+        console.log("C O U N T:", COUNT);
+        console.log("'DBAD': ", dbAd);
 
-          // await dbAd.images.destroy();
-          // const DBAD_IMG = await dbAd.images;
-          // console.log("'DBAD_IMG': ", DBAD_IMG);
-          // await dbAd.removeImage(dbAd.images);
-          // await dbAd.removeImage(dbAd.adId); // ??
+        // await dbAd.removeImage(dbAd.imageId);
 
-          await dbAd.addImage(ad.images);
-          return dbAd;
-        }
-        else {
-          // console.log("THIS____USER: ", thisUser);
-          // console.log("'DBAD': ", dbAd);
-          // if (ad.tags.length === 0) {
-          // }
-          // console.log("АД_2:::: ", ad);
-          // console.log("АД_2_images:::: ", ad.images);
-          // console.log("АД_2_images.id:::: ", ad.images.id);
-          dbAd = ad;
-          dbAd = await thisUser.createAd(dbAd);
-          await dbAd.addImage(ad.images);
-          return dbAd;
-        }
-        // return dbAd;
+        // await dbAd.images.destroy();
+        // const DBAD_IMG = await dbAd.images;
+        // console.log("'DBAD_IMG': ", DBAD_IMG);
+        // await dbAd.removeImage(dbAd.images);
+        // await dbAd.removeImage(dbAd.adId); // ??
+
+        await dbAd.addImage(ad.images);
+        return dbAd;
+      }
+      else {
+        // console.log("THIS____USER: ", thisUser);
+        // console.log("'DBAD': ", dbAd);
+        // if (ad.tags.length === 0) {
+        // }
+        // console.log("АД_2:::: ", ad);
+        // console.log("АД_2_images:::: ", ad.images);
+        // console.log("АД_2_images.id:::: ", ad.images.id);
+        dbAd = ad;
+        dbAd = await thisUser.createAd(dbAd);
+        await dbAd.addImage(ad.images);
+        return dbAd;
+      }
+      // return dbAd;
       // }
       // throw new Error("Not user's image");
     }
@@ -444,24 +451,22 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
-app.use('/check', (async (req, res) => {
-  try {
-    const models = getModels(1);
+// app.use('/check', (async (req, res) => {
+//   try {
+//     const models = getModels(1);
 
-    const result = await models.Ad.findAll()
+//     const result = await models.Ad.findAll()
 
-    // res.json({"1": 123})
-    // const result = await Ad.findAll();
-    console.log(result);
-    res.json(result)
-  } catch (error) {
-    console.log(error);
-    res.send(error)
+//     // res.json({"1": 123})
+//     // const result = await Ad.findAll();
+//     console.log(result);
+//     res.json(result)
+//   } catch (error) {
+//     console.log(error);
+//     res.send(error)
 
-  }
-
-
-}))
+//   }
+// }))
 
 
 app.use('/graphql', graphqlHTTP(async (req, res) => {
@@ -490,24 +495,24 @@ app.use('/graphql', graphqlHTTP(async (req, res) => {
 
 
 app.post('/upload', upload.single('dropZone'), async (req, res) => {
-// app.post('/upload', upload.array('file'), async (req, res) => {    ????
+  // app.post('/upload', upload.array('file'), async (req, res) => {    ????
 
   // console.log("REQ_FILE: ", req.file);
 
-    const decodedUser = jwtCheck(req)
-    const models = getModels(decodedUser.id);
+  const decodedUser = jwtCheck(req)
+  const models = getModels(decodedUser.id);
 
-    if (decodedUser) {
-      const {originalname, mimetype, filename, size, path} = req.file
-      // console.log("P_A_T_H: ", path);
-      url = path.slice(7);
-      const image = await models.Image.create({originalname, mimetype, filename, size, url, userId: decodedUser.id})
-      // console.log("I_M_A_G_E: ", image);
+  if (decodedUser) {
+    const { originalname, mimetype, filename, size, path } = req.file
+    // console.log("P_A_T_H: ", path);
+    url = path.slice(7);
+    const image = await models.Image.create({ originalname, mimetype, filename, size, url, userId: decodedUser.id })
+    // console.log("I_M_A_G_E: ", image);
 
-      res.status(201).end(JSON.stringify(image))
-    }
-    else {
-      res.status(403).end('Unauthorized file upload prohibited')
+    res.status(201).end(JSON.stringify(image))
+  }
+  else {
+    res.status(403).end('Unauthorized file upload prohibited')
   }
 });
 
