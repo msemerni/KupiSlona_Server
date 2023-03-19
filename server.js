@@ -38,7 +38,6 @@ function jwtCheck(req) {
 }
 
 const dbOptions = {
-  // host: 'kupislona-db.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
   host: 'kupislonadb.czyffl3fpd98.eu-central-1.rds.amazonaws.com',
   port: 3306,
   logging: console.log,
@@ -160,7 +159,7 @@ const getModels = userId => {
 
   return { Ad, User, Image }
 }
-//////////////////////////////////////////
+
 class GlobalUser extends Sequelize.Model {
 }
 
@@ -171,7 +170,6 @@ GlobalUser.init({
   phones: Sequelize.STRING,
   address: Sequelize.STRING,
 }, { sequelize, modelName: 'user' })
-
 
 const schema = buildSchema(`
 type Query{
@@ -188,7 +186,6 @@ type Mutation{
   deleteAd(id: ID): Ad
   createUser(login: String!, password: String!): User
   userUpdate(myProfile: UserInput): User
-  
 }
 
 type Ad{
@@ -261,16 +258,13 @@ input ImageInput {
 }
 `)
 
-
 const rootValue = {
-
   async login({ login, password }) {
     if (!login || !password) {
       throw new Error("Wrong creditnails");
     }
 
     const user = await GlobalUser.findOne({ where: { login } })
-    // console.log("u_s_e_r", user);
     if (!user) {
       throw new Error("User not found");
     }
@@ -311,14 +305,12 @@ const rootValue = {
 
   async getUser({ id }, { thisUser, models: { User } }) {
     if (thisUser) {
-      // console.log("THIS USER: ", thisUser);
       return await User.findByPk(id);
     }
     throw new Error("Unauthorized user");
   },
 
   async getAds({ settings }, { thisUser, models: { Ad } }) {
-
     //// ВРЕМЕННО ЗАКОММЕНТИЛ:
     // if (thisUser) {
     const { order, offset, limit } = JSON.parse(settings)
@@ -328,15 +320,10 @@ const rootValue = {
   },
 
   async AdFindOne({ id }, { thisUser, models: { User, Ad } }) {
-
     //// ВРЕМЕННО ЗАКОММЕНТИЛ:
     // if (thisUser) {
-    // console.log("АйДи", id);
-
     let ad = await Ad.findByPk(id);
-    // console.log(ad);
     return ad;
-
     // }
     throw new Error("Unauthorized user");
   },
@@ -414,10 +401,7 @@ const rootValue = {
         console.log("'DBAD': ", dbAd);
 
         // await dbAd.removeImage(dbAd.imageId);
-
         // await dbAd.images.destroy();
-        // const DBAD_IMG = await dbAd.images;
-        // console.log("'DBAD_IMG': ", DBAD_IMG);
         // await dbAd.removeImage(dbAd.images);
         // await dbAd.removeImage(dbAd.adId); // ??
 
@@ -425,13 +409,8 @@ const rootValue = {
         return dbAd;
       }
       else {
-        // console.log("THIS____USER: ", thisUser);
-        // console.log("'DBAD': ", dbAd);
         // if (ad.tags.length === 0) {
         // }
-        // console.log("АД_2:::: ", ad);
-        // console.log("АД_2_images:::: ", ad.images);
-        // console.log("АД_2_images.id:::: ", ad.images.id);
         dbAd = ad;
         dbAd = await thisUser.createAd(dbAd);
         await dbAd.addImage(ad.images);
@@ -446,7 +425,6 @@ const rootValue = {
 
 }
 
-
 const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json());
@@ -454,7 +432,6 @@ app.use(bodyParser.json());
 // app.use('/check', (async (req, res) => {
 //   try {
 //     const models = getModels(1);
-
 //     const result = await models.Ad.findAll()
 
 //     // res.json({"1": 123})
@@ -468,16 +445,13 @@ app.use(bodyParser.json());
 //   }
 // }))
 
-
 app.use('/graphql', graphqlHTTP(async (req, res) => {
   const decodedUser = jwtCheck(req);
-  // console.log("DECODED USER: ", decodedUser);
 
   if (decodedUser) {
     const models = getModels(decodedUser.id);
     const thisUser = await models.User.findByPk(decodedUser.id)
-    // console.log("MODELS: ", models) // { Ad: ad, User: user, Image: image }
-    // console.log("ThIs USER: ", thisUser) //user {dataValues: {id: 1,login: 'vasya'.....
+
     return {
       schema,
       rootValue,
@@ -496,7 +470,6 @@ app.use('/graphql', graphqlHTTP(async (req, res) => {
 
 app.post('/upload', upload.single('dropZone'), async (req, res) => {
   // app.post('/upload', upload.array('file'), async (req, res) => {    ????
-
   // console.log("REQ_FILE: ", req.file);
 
   const decodedUser = jwtCheck(req)
@@ -504,10 +477,8 @@ app.post('/upload', upload.single('dropZone'), async (req, res) => {
 
   if (decodedUser) {
     const { originalname, mimetype, filename, size, path } = req.file
-    // console.log("P_A_T_H: ", path);
     url = path.slice(7);
     const image = await models.Image.create({ originalname, mimetype, filename, size, url, userId: decodedUser.id })
-    // console.log("I_M_A_G_E: ", image);
 
     res.status(201).end(JSON.stringify(image))
   }
