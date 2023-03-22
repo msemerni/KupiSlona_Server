@@ -429,6 +429,22 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
+///// allow cors:
+const cors=require("cors");
+const corsOptions ={
+   origin:'*', 
+   credentials:true, //access-control-allow-credentials:true
+   optionSuccessStatus:200,
+}
+app.use(cors(corsOptions));
+
+// app.use(cors({
+//   origin: '*', // use your actual domain name (or localhost), using * is not recommended
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Origin', 'X-Requested-With', 'Accept', 'x-client-key', 'x-client-token', 'x-client-secret', 'Authorization'],
+//   credentials: true
+// }))
+
 // app.use('/check', (async (req, res) => {
 //   try {
 //     const models = getModels(1);
