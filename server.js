@@ -51,7 +51,7 @@ const dbOptions = {
 }
 
 // const { now } = require('sequelize/types/utils');
-
+ 
 // const sequelize = new Sequelize('mysql://mv:MyNewPass5!@127.0.0.1/slon');
 const sequelize = new Sequelize("kupislonadb", "mv", "MyNewPass5!", dbOptions);
 
